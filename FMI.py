@@ -9,26 +9,26 @@ def Villela():
     df = pd.read_excel(xlsxfile)
     df.columns = ['CNPJ']
     df.drop_duplicates(inplace=True)
+    save_path = filedialog.asksaveasfilename(defaultextension=".csv")
     CNPJ = df['CNPJ'].tolist()
     print(df)
-
+    
     result_list = []
     x=0
     with sync_playwright() as playwright:
         browser = playwright.chromium.launch(headless=False)
         context = browser.new_context()
         page = context.new_page()
-        page.goto("https://portal.aceleradorvillela.com/auth/login")
-        page.get_by_placeholder("E-mail").click()
-        page.get_by_placeholder("E-mail").fill("felipe.machado@villelabrasil.com.br")
-        page.get_by_placeholder("Password").click()
-        page.get_by_placeholder("Password").fill("villela2022")
-        page.get_by_placeholder("Password").press("Enter")
-        page.get_by_role("link", name="Funil de Vendas").click()
+        page.goto("https://portal-saas.aceleradorvillela.com/login")
+        page.locator("input[type=\"text\"]").click()
+        page.locator("input[type=\"text\"]").fill("felipe.machado@villelabrasil.com.br")
+        page.locator("#login_password").click()
+        page.locator("#login_password").fill("villela2022")
+        page.get_by_role("button", name="ENTRAR").click()
         page.get_by_role("link", name="Consultas").click()
         time.sleep(0.9)
 
-        for x in range(0,10):
+        for x in range(0,len(CNPJ)):
             page.get_by_placeholder("CNPJ da Empresa").click()
             page.get_by_placeholder("CNPJ da Empresa").fill(CNPJ[x])
             page.get_by_role("button").first.click()
@@ -44,7 +44,7 @@ def Villela():
         browser.close()
 
     result_df = pd.DataFrame(result_list, columns=["CNPJ", "Clientes"])
-    save_path = filedialog.asksaveasfilename(defaultextension=".xlsx")
+    
     result_df.to_csv(save_path, index=False, encoding='utf-8')
 
 if __name__ == "__main__":
